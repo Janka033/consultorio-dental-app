@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, LogOut } from "lucide-react";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
@@ -16,10 +17,19 @@ interface Appointment {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Verificar autenticación
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [router]);
 
   // Cargar citas
   const fetchAppointments = async () => {
@@ -41,6 +51,15 @@ export default function DashboardPage() {
     fetchAppointments();
   }, []);
 
+  // Logout
+  const handleLogout = () => {
+    if (confirm("¿Estás seguro de cerrar sesión?")) {
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userEmail");
+      router.push("/login");
+    }
+  };
+
   // Abrir modal para crear
   const handleCreate = () => {
     setSelectedAppointment(null);
@@ -55,14 +74,14 @@ export default function DashboardPage() {
 
   // Eliminar cita
   const handleDelete = async (id: string) => {
-    if (! confirm("¿Estás seguro de eliminar esta cita?")) return;
+    if (! confirm("¿Estás seguro de eliminar esta cita? ")) return;
 
     try {
       const response = await fetch(`/api/appointments/${id}`, {
         method: "DELETE",
       });
 
-      if (response.ok) {
+      if (response. ok) {
         await fetchAppointments();
         alert("Cita eliminada correctamente");
       }
@@ -89,7 +108,7 @@ export default function DashboardPage() {
               Dashboard - Consultorio Dental
             </h1>
           </div>
-          <Button variant="ghost" onClick={() => alert("Logout próximamente")}>
+          <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Salir
           </Button>

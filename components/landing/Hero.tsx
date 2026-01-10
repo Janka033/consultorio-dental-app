@@ -2,8 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function Hero() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Header */}
@@ -15,7 +18,7 @@ export function Hero() {
           </h1>
         </div>
         <Button 
-          onClick={() => alert("Login próximamente")}
+          onClick={() => router.push("/login")}
           variant="outline"
         >
           Iniciar Sesión
@@ -29,8 +32,8 @@ export function Hero() {
             Sistema de Gestión de Citas Dentales
           </h2>
           <p className="text-xl text-gray-600 mb-12">
-            Administra tus citas de manera eficiente y profesional.
-            Sistema moderno, seguro y fácil de usar.
+            Administra tus citas de manera eficiente y profesional. 
+            Sistema moderno, seguro y fácil de usar. 
           </p>
 
           {/* Features */}
@@ -61,7 +64,7 @@ export function Hero() {
           </div>
 
           <Button 
-            onClick={() => alert("Login próximamente")}
+            onClick={() => router.push("/login")}
             size="lg"
             className="text-lg px-8 py-6"
           >
