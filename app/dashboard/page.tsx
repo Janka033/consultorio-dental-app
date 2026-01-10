@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Calendar, LogOut, Search } from "lucide-react";
+import { Plus, Calendar, LogOut, Search, List, CalendarDays } from "lucide-react";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
+import { CalendarView } from "@/components/dashboard/CalendarView";
 import { AppointmentModal } from "@/components/dashboard/AppointmentModal";
 
 interface Appointment {
@@ -18,6 +19,8 @@ interface Appointment {
   status: string;
 }
 
+type ViewMode = "list" | "calendar";
+
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -27,6 +30,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [prefilledDate, setPrefilledDate] = useState<string>("");
 
   // Verificar autenticación con NextAuth
   useEffect(() => {
@@ -74,25 +79,34 @@ export default function DashboardPage() {
   // Abrir modal para crear
   const handleCreate = () => {
     setSelectedAppointment(null);
+    setPrefilledDate("");
+    setIsModalOpen(true);
+  };
+
+  // Abrir modal para crear con fecha preseleccionada
+  const handleCreateForDate = (date: string) => {
+    setSelectedAppointment(null);
+    setPrefilledDate(date);
     setIsModalOpen(true);
   };
 
   // Abrir modal para editar
   const handleEdit = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
+    setPrefilledDate("");
     setIsModalOpen(true);
   };
 
   // Eliminar cita
   const handleDelete = async (id: string) => {
-    if (! confirm("¿Estás seguro de eliminar esta cita? ")) return;
+    if (!confirm("¿Estás seguro de eliminar esta cita?")) return;
 
     try {
       const response = await fetch(`/api/appointments/${id}`, {
         method: "DELETE",
       });
 
-      if (response. ok) {
+      if (response.ok) {
         await fetchAppointments();
         alert("Cita eliminada correctamente");
       }
@@ -143,63 +157,98 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Filtros */}
+        {/* Filtros y toggle de vista */}
         <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Buscar por paciente
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Nombre del paciente..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filtrar por fecha
-              </label>
-              <Input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-              />
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="mr-2 h-4 w-4" />
+                Lista
+              </Button>
+              <Button
+                variant={viewMode === "calendar" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("calendar")}
+              >
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Calendario
+              </Button>
             </div>
           </div>
-          {(searchTerm || filterDate) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSearchTerm("");
-                setFilterDate("");
-              }}
-              className="mt-4"
-            >
-              Limpiar filtros
-            </Button>
+
+          {viewMode === "list" && (
+            <>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Buscar por paciente
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder="Nombre del paciente..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Filtrar por fecha
+                  </label>
+                  <Input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              {(searchTerm || filterDate) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setFilterDate("");
+                  }}
+                  className="mt-4"
+                >
+                  Limpiar filtros
+                </Button>
+              )}
+            </>
           )}
         </div>
 
-        {/* Lista de citas */}
-        <AppointmentList
-          appointments={appointments}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        {/* Vista de lista o calendario */}
+        {viewMode === "list" ? (
+          <AppointmentList
+            appointments={appointments}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ) : (
+          <CalendarView
+            appointments={appointments}
+            onEdit={handleEdit}
+            onCreateForDate={handleCreateForDate}
+          />
+        )}
       </main>
 
       {/* Modal */}
       {isModalOpen && (
         <AppointmentModal
           appointment={selectedAppointment}
+          prefilledDate={prefilledDate}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
         />

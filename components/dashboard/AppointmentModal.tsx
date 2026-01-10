@@ -24,13 +24,15 @@ interface Appointment {
 }
 
 interface AppointmentModalProps {
-  appointment:  Appointment | null;
+  appointment: Appointment | null;
+  prefilledDate?: string;
   onClose: () => void;
   onSave: () => void;
 }
 
 export function AppointmentModal({
   appointment,
+  prefilledDate,
   onClose,
   onSave,
 }: AppointmentModalProps) {
@@ -38,13 +40,13 @@ export function AppointmentModal({
     patientName: "",
     date: "",
     time: "",
-    notes:  "",
+    notes: "",
     status: "agendada",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Cargar datos si es edición
+  // Cargar datos si es edición o fecha prellenada
   useEffect(() => {
     if (appointment) {
       setFormData({
@@ -54,8 +56,16 @@ export function AppointmentModal({
         notes: appointment.notes || "",
         status: appointment.status,
       });
+    } else if (prefilledDate) {
+      setFormData({
+        patientName: "",
+        date: prefilledDate,
+        time: "",
+        notes: "",
+        status: "agendada",
+      });
     }
-  }, [appointment]);
+  }, [appointment, prefilledDate]);
 
   // Validar formulario
   const validate = () => {
