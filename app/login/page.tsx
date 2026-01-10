@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,26 +17,23 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React. FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      // Simulación de autenticación
-      // En producción, aquí iría NextAuth signIn()
-      if (
-        formData.email === "admin@consultorio.com" &&
-        formData.password === "admin123"
-      ) {
-        // Guardar sesión en localStorage (temporal)
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userEmail", formData.email);
-        
-        // Redirigir al dashboard
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Credenciales incorrectas. Verifica tu email y contraseña.");
+      } else if (result?.ok) {
         router.push("/dashboard");
-      } else {
-        setError("Credenciales incorrectas.  Verifica tu email y contraseña.");
+        router.refresh();
       }
     } catch (err) {
       setError("Error al iniciar sesión. Intenta de nuevo.");

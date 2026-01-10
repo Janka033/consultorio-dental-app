@@ -8,27 +8,27 @@ export async function seedDatabase() {
     
     // Verificar si ya existe el admin
     const existingAdmin = await userRepository.findOne({
-      where: { email: process.env.ADMIN_EMAIL || "admin@consultoriodental.com" }
+      where: { email: process.env.ADMIN_EMAIL || "admin@consultorio.com" }
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt. hash(
-        process.env.ADMIN_PASSWORD || "Admin123!",
+      const hashedPassword = await bcrypt.hash(
+        process.env.ADMIN_PASSWORD || "admin123",
         10
       );
 
       const admin = userRepository.create({
-        email: process.env.ADMIN_EMAIL || "admin@consultoriodental.com",
+        email: process.env.ADMIN_EMAIL || "admin@consultorio.com",
         password: hashedPassword,
         name: "Dr. Administrador",
         role: "admin"
       });
 
       await userRepository.save(admin);
-      console.log("Usuario admin creado correctamente");
-      console.log("Email:", process.env.ADMIN_EMAIL || "admin@consultoriodental.com");
+      console.log("✅ Usuario admin creado correctamente");
+      console.log("📧 Email:", process.env.ADMIN_EMAIL || "admin@consultorio.com");
     } else {
-      console.log("ℹUsuario admin ya existe");
+      console.log("ℹ️ Usuario admin ya existe");
     }
   } catch (error) {
     console.error("Error al crear seed:", error);

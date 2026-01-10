@@ -1,11 +1,11 @@
-import type { NextAuthConfig } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { AppDataSource, initializeDatabase } from "./db/data-source";
 import { User } from "./db/entities/User";
 import { seedDatabase } from "./db/seed";
 
-export const authOptions = {
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -13,7 +13,7 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-            async authorize(credentials) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -24,7 +24,7 @@ export const authOptions = {
           await seedDatabase();
 
           const userRepository = AppDataSource.getRepository(User);
-          const user = await userRepository. findOne({
+          const user = await userRepository.findOne({
             where: { email: credentials.email as string }
           });
 
@@ -57,24 +57,24 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user. id;
+        token.id = user.id;
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user. id = token.id as string;
+        session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
       return session;
     }
   },
-  pages:  {
-    signIn: "/",
+  pages: {
+    signIn: "/login",
   },
   session: {
-    strategy: "jwt" as const,
+    strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
-} satisfies NextAuthConfig;
+});

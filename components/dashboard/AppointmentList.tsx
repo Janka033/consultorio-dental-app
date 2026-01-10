@@ -119,7 +119,7 @@ export function AppointmentList({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-900">
                     <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                    {new Date(appointment.date).toLocaleDateString("es-ES")}
+                    {appointment.date.split('T')[0].split('-').reverse().join('/')}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
