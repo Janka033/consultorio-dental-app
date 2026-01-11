@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server";
-import { initializeDatabase } from "@/lib/db/data-source";
+import { AppDataSource } from "@/lib/db/data-source";
 import { seedDatabase } from "@/lib/db/seed";
 
 // Endpoint temporal para inicializar la base de datos
 export async function GET() {
   try {
-    await initializeDatabase();
+    // Inicializar la conexión
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("✅ Database connected");
+    }
+    
+    // FORZAR sincronización de tablas (solo para setup inicial)
+    await AppDataSource.synchronize(false);
+    console.log("✅ Tables created");
+    
+    // Crear usuario admin
     await seedDatabase();
+    console.log("✅ Seed completed");
     
     return NextResponse.json({ 
       message: "Base de datos inicializada correctamente",
@@ -18,7 +29,11 @@ export async function GET() {
   } catch (error) {
     console.error("Error al inicializar:", error);
     return NextResponse.json(
-      { error: "Error al inicializar base de datos", details: error instanceof Error ? error.message : String(error) },
+      { 
+        error: "Error al inicializar base de datos", 
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
