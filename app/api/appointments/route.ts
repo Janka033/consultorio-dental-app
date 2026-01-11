@@ -4,6 +4,8 @@ import { Appointment, AppointmentStatus } from "@/lib/db/entities/Appointment";
 import { appointmentSchema } from "@/lib/validations/appointment";
 import { AppDataSource } from "@/lib/db/data-source";
 import { Between, Like } from "typeorm";
+import { createAuditLog, getIpFromRequest } from "@/lib/audit";
+import { AuditAction, AuditEntity } from "@/lib/db/entities/AuditLog";
 
 // GET - Listar citas con filtros opcionales
 export async function GET(request: NextRequest) {
@@ -107,6 +109,21 @@ export async function POST(request: NextRequest) {
     appointment.status = validatedData.status as any || "agendada";
     
     await appointmentRepository.save(appointment);
+
+    // Registrar acción en auditoría
+    await createAuditLog({
+      action: AuditAction.CREATE,
+      entity: AuditEntity.APPOINTMENT,
+      entityId: appointment.id,
+      description: `Cita creada para ${appointment.patientName} el ${appointment.date} a las ${appointment.time}`,
+      metadata: {
+        patientName: appointment.patientName,
+        date: appointment.date,
+        time: appointment.time,
+        status: appointment.status
+      },
+      ipAddress: getIpFromRequest(request)
+    });
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error: any) {

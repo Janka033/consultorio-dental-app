@@ -2,13 +2,14 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { User } from "./entities/User";
 import { Appointment } from "./entities/Appointment";
+import { AuditLog } from "./entities/AuditLog";
 
 export const AppDataSource = new DataSource({
   type:  "postgres",
   url: process.env.DATABASE_URL,
   synchronize: true, // Solo en desarrollo - crea las tablas automáticamente
   logging: false,
-  entities: [User, Appointment],
+  entities: [User, Appointment, AuditLog],
   migrations: [],
   subscribers: [],
 });

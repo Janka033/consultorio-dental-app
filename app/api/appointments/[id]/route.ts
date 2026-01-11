@@ -3,6 +3,8 @@ import { initializeDatabase } from "@/lib/db/data-source";
 import { Appointment, AppointmentStatus } from "@/lib/db/entities/Appointment";
 import { appointmentSchema } from "@/lib/validations/appointment";
 import { AppDataSource } from "@/lib/db/data-source";
+import { createAuditLog, getIpFromRequest } from "@/lib/audit";
+import { AuditAction, AuditEntity } from "@/lib/db/entities/AuditLog";
 
 // GET - Obtener una cita específica
 export async function GET(
@@ -112,6 +114,21 @@ export async function PUT(
     
     await appointmentRepository.save(appointment);
 
+    // Registrar acción en auditoría
+    await createAuditLog({
+      action: AuditAction.UPDATE,
+      entity: AuditEntity.APPOINTMENT,
+      entityId: appointment.id,
+      description: `Cita actualizada para ${appointment.patientName} - Estado: ${appointment.status}`,
+      metadata: {
+        patientName: appointment.patientName,
+        date: appointment.date,
+        time: appointment.time,
+        status: appointment.status
+      },
+      ipAddress: getIpFromRequest(request)
+    });
+
     return NextResponse.json(appointment);
   } catch (error: any) {
     console.error("Error al actualizar cita:", error);
@@ -133,7 +150,7 @@ export async function PUT(
 // DELETE - Eliminar cita
 export async function DELETE(
   request: NextRequest,
-  { params }: { params:  { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     await initializeDatabase();
@@ -150,14 +167,32 @@ export async function DELETE(
       );
     }
 
+    // Guardar datos antes de eliminar
+    const deletedData = {
+      patientName: appointment.patientName,
+      date: appointment.date,
+      time: appointment.time,
+      status: appointment.status
+    };
+
     await appointmentRepository.remove(appointment);
+
+    // Registrar acción en auditoría
+    await createAuditLog({
+      action: AuditAction.DELETE,
+      entity: AuditEntity.APPOINTMENT,
+      entityId: params.id,
+      description: `Cita eliminada: ${deletedData.patientName} - ${deletedData.date} ${deletedData.time}`,
+      metadata: deletedData,
+      ipAddress: getIpFromRequest(request)
+    });
 
     return NextResponse.json({ message: "Cita eliminada correctamente" });
   } catch (error) {
     console.error("Error al eliminar cita:", error);
     return NextResponse.json(
       { error: "Error al eliminar cita" },
-      { status:  500 }
+      { status: 500 }
     );
   }
 }

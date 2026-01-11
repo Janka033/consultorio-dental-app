@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Calendar, LogOut, Search, List, CalendarDays, Download, FileText } from "lucide-react";
+import { Plus, Calendar, LogOut, Search, List, CalendarDays, Download, FileText, Activity } from "lucide-react";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { AppointmentModal } from "@/components/dashboard/AppointmentModal";
@@ -139,10 +139,20 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-          <Button variant="ghost" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Salir
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/audit-logs")}
+              title="Ver logs de auditoría"
+            >
+              <Activity className="mr-2 h-4 w-4" />
+              Auditoría
+            </Button>
+            <Button variant="ghost" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Salir
+            </Button>
+          </div>
         </div>
       </header>
 
