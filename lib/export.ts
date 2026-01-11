@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import html2pdf from "html2pdf.js";
 
 interface Appointment {
   id: string;
@@ -11,34 +12,36 @@ interface Appointment {
 }
 
 /**
- * Exporta citas a formato CSV
+ * Exporta citas a formato CSV compatible con Excel
  * @param appointments - Array de citas a exportar
  * @param filename - Nombre del archivo (sin extensión)
  */
 export function exportToCSV(appointments: Appointment[], filename: string = "citas") {
-  // Definir encabezados
+  // Definir encabezados - usando punto y coma para Excel en español
   const headers = ["ID", "Paciente", "Fecha", "Hora", "Estado", "Notas"];
   
-  // Formatear datos
+  // Formatear datos - escapar comillas y usar punto y coma como delimitador
   const rows = appointments.map((apt) => {
     const dateFormatted = apt.date.split('T')[0].split('-').reverse().join('/');
     const statusLabel = getStatusLabel(apt.status);
-    const notes = apt.notes ? `"${apt.notes.replace(/"/g, '""')}"` : "";
+    
+    // Escapar comillas dobles y agregar comillas alrededor de cada campo
+    const escapeCSV = (value: string) => `"${value.replace(/"/g, '""')}"`;
     
     return [
-      apt.id,
-      `"${apt.patientName}"`,
-      dateFormatted,
-      apt.time,
-      statusLabel,
-      notes
-    ].join(",");
+      escapeCSV(apt.id),
+      escapeCSV(apt.patientName),
+      escapeCSV(dateFormatted),
+      escapeCSV(apt.time),
+      escapeCSV(statusLabel),
+      escapeCSV(apt.notes || "")
+    ].join(";"); // Punto y coma para Excel en español
   });
 
   // Combinar encabezados y filas
-  const csvContent = [headers.join(","), ...rows].join("\n");
+  const csvContent = [headers.map(h => `"${h}"`).join(";"), ...rows].join("\r\n");
 
-  // Agregar BOM para compatibilidad con Excel en español
+  // Agregar BOM (Byte Order Mark) para que Excel detecte UTF-8 correctamente
   const BOM = "\uFEFF";
   const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
   
@@ -47,223 +50,104 @@ export function exportToCSV(appointments: Appointment[], filename: string = "cit
 }
 
 /**
- * Exporta citas a formato PDF
+ * Exporta citas a formato PDF (descarga directa)
  * @param appointments - Array de citas a exportar
  * @param filename - Nombre del archivo (sin extensión)
  */
 export function exportToPDF(appointments: Appointment[], filename: string = "citas") {
-  // Crear documento HTML para impresión
-  const printWindow = window.open("", "_blank");
-  
-  if (!printWindow) {
-    alert("Por favor permite las ventanas emergentes para exportar a PDF");
-    return;
-  }
-
   const today = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: es });
   
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Reporte de Citas</title>
-      <style>
-        @media print {
-          @page { margin: 2cm; }
-          body { margin: 0; }
-        }
-        
-        body {
-          font-family: Arial, sans-serif;
-          padding: 20px;
-          max-width: 1000px;
-          margin: 0 auto;
-        }
-        
-        .header {
-          text-align: center;
-          margin-bottom: 30px;
-          border-bottom: 3px solid #2563eb;
-          padding-bottom: 20px;
-        }
-        
-        .header h1 {
-          color: #1e40af;
-          margin: 0 0 10px 0;
-          font-size: 28px;
-        }
-        
-        .header p {
-          color: #64748b;
-          margin: 5px 0;
-          font-size: 14px;
-        }
-        
-        .summary {
-          background: #f1f5f9;
-          padding: 15px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-        }
-        
-        .summary-item {
-          display: inline-block;
-          margin-right: 30px;
-          font-size: 14px;
-        }
-        
-        .summary-label {
-          font-weight: bold;
-          color: #334155;
-        }
-        
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 20px;
-        }
-        
-        th {
-          background-color: #2563eb;
-          color: white;
-          padding: 12px 8px;
-          text-align: left;
-          font-size: 14px;
-          font-weight: 600;
-        }
-        
-        td {
-          padding: 10px 8px;
-          border-bottom: 1px solid #e2e8f0;
-          font-size: 13px;
-        }
-        
-        tr:nth-child(even) {
-          background-color: #f8fafc;
-        }
-        
-        tr:hover {
-          background-color: #f1f5f9;
-        }
-        
-        .status-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-size: 11px;
-          font-weight: 600;
-        }
-        
-        .status-agendada {
-          background-color: #dbeafe;
-          color: #1e40af;
-        }
-        
-        .status-finalizada {
-          background-color: #dcfce7;
-          color: #166534;
-        }
-        
-        .status-cancelada {
-          background-color: #fee2e2;
-          color: #991b1b;
-        }
-        
-        .footer {
-          margin-top: 40px;
-          text-align: center;
-          color: #94a3b8;
-          font-size: 12px;
-          border-top: 1px solid #e2e8f0;
-          padding-top: 20px;
-        }
-        
-        .no-appointments {
-          text-align: center;
-          padding: 40px;
-          color: #64748b;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>📋 Reporte de Citas</h1>
-        <p><strong>Consultorio Dental Dr. García</strong></p>
-        <p>Generado el ${today}</p>
-      </div>
-      
-      <div class="summary">
-        <div class="summary-item">
-          <span class="summary-label">Total de citas:</span> ${appointments.length}
+  // Crear elemento HTML temporal para convertir a PDF
+  const element = document.createElement("div");
+  element.style.padding = "20px";
+  element.style.fontFamily = "Arial, sans-serif";
+  element.style.color = "#000";
+  
+  element.innerHTML = `
+    <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2563eb; padding-bottom: 20px;">
+      <h1 style="color: #1e40af; margin: 0 0 10px 0; font-size: 28px;">📋 Reporte de Citas</h1>
+      <p style="color: #64748b; margin: 5px 0; font-size: 14px;"><strong>Consultorio Dental Dr. García</strong></p>
+      <p style="color: #64748b; margin: 5px 0; font-size: 14px;">Generado el ${today}</p>
+    </div>
+    
+    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+        <div style="margin: 5px 0;">
+          <span style="font-weight: bold; color: #334155;">Total de citas:</span> ${appointments.length}
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Agendadas:</span> ${appointments.filter(a => a.status === "agendada").length}
+        <div style="margin: 5px 0;">
+          <span style="font-weight: bold; color: #334155;">Agendadas:</span> ${appointments.filter(a => a.status === "agendada").length}
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Finalizadas:</span> ${appointments.filter(a => a.status === "finalizada").length}
+        <div style="margin: 5px 0;">
+          <span style="font-weight: bold; color: #334155;">Finalizadas:</span> ${appointments.filter(a => a.status === "finalizada").length}
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Canceladas:</span> ${appointments.filter(a => a.status === "cancelada").length}
+        <div style="margin: 5px 0;">
+          <span style="font-weight: bold; color: #334155;">Canceladas:</span> ${appointments.filter(a => a.status === "cancelada").length}
         </div>
       </div>
-      
-      ${appointments.length > 0 ? `
-        <table>
-          <thead>
-            <tr>
-              <th>Paciente</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Estado</th>
-              <th>Notas</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${appointments.map((apt) => {
-              const dateFormatted = apt.date.split('T')[0].split('-').reverse().join('/');
-              const statusLabel = getStatusLabel(apt.status);
-              const statusClass = `status-${apt.status}`;
-              
-              return `
-                <tr>
-                  <td><strong>${apt.patientName}</strong></td>
-                  <td>${dateFormatted}</td>
-                  <td>${apt.time}</td>
-                  <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                  <td>${apt.notes || "-"}</td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      ` : `
-        <div class="no-appointments">
-          <p>No hay citas para mostrar</p>
-        </div>
-      `}
-      
-      <div class="footer">
-        <p>Consultorio Dental Dr. García | © 2026 Todos los derechos reservados</p>
-        <p>Sistema de Gestión de Citas Odontológicas</p>
+    </div>
+    
+    ${appointments.length > 0 ? `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+          <tr style="background-color: #2563eb;">
+            <th style="color: white; padding: 12px 8px; text-align: left; font-size: 14px;">Paciente</th>
+            <th style="color: white; padding: 12px 8px; text-align: left; font-size: 14px;">Fecha</th>
+            <th style="color: white; padding: 12px 8px; text-align: left; font-size: 14px;">Hora</th>
+            <th style="color: white; padding: 12px 8px; text-align: left; font-size: 14px;">Estado</th>
+            <th style="color: white; padding: 12px 8px; text-align: left; font-size: 14px;">Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${appointments.map((apt, index) => {
+            const dateFormatted = apt.date.split('T')[0].split('-').reverse().join('/');
+            const statusLabel = getStatusLabel(apt.status);
+            const bgColor = index % 2 === 0 ? "#ffffff" : "#f8fafc";
+            
+            let statusStyle = "";
+            if (apt.status === "agendada") {
+              statusStyle = "background-color: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block;";
+            } else if (apt.status === "finalizada") {
+              statusStyle = "background-color: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block;";
+            } else if (apt.status === "cancelada") {
+              statusStyle = "background-color: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block;";
+            }
+            
+            return `
+              <tr style="background-color: ${bgColor};">
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;"><strong>${apt.patientName}</strong></td>
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;">${dateFormatted}</td>
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;">${apt.time}</td>
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;"><span style="${statusStyle}">${statusLabel}</span></td>
+                <td style="padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;">${apt.notes || "-"}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    ` : `
+      <div style="text-align: center; padding: 40px; color: #64748b;">
+        <p>No hay citas para mostrar</p>
       </div>
-      
-      <script>
-        window.onload = function() {
-          window.print();
-        };
-        
-        window.onafterprint = function() {
-          window.close();
-        };
-      </script>
-    </body>
-    </html>
+    `}
+    
+    <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+      <p>Consultorio Dental Dr. García | © 2026 Todos los derechos reservados</p>
+      <p>Sistema de Gestión de Citas Odontológicas</p>
+    </div>
   `;
   
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+  // Configuración de html2pdf
+  const options = {
+    margin: [15, 10],
+    filename: `${filename}_${format(new Date(), "yyyy-MM-dd")}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+  
+  // Generar y descargar PDF directamente
+  html2pdf().set(options).from(element).save();
 }
 
 /**
