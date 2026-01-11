@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Calendar, LogOut, Search, List, CalendarDays } from "lucide-react";
+import { Plus, Calendar, LogOut, Search, List, CalendarDays, Download, FileText } from "lucide-react";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { AppointmentModal } from "@/components/dashboard/AppointmentModal";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 
 interface Appointment {
   id: string;
@@ -147,14 +148,36 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           <h2 className="text-3xl font-bold text-gray-900">
             Gestión de Citas
           </h2>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva Cita
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {appointments.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => exportToCSV(appointments)}
+                  title="Exportar a CSV"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => exportToPDF(appointments)}
+                  title="Exportar a PDF"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+              </>
+            )}
+            <Button onClick={handleCreate}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva Cita
+            </Button>
+          </div>
         </div>
 
         {/* Filtros y toggle de vista */}
