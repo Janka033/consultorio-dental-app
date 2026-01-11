@@ -2,7 +2,7 @@
 
 Aplicación web monolítica desarrollada en Next.js para la gestión completa de citas de un consultorio odontológico. Incluye landing page informativa y sistema privado de administración para el odontólogo.
 
-## ✨ Características
+## Características
 
 ### Landing Page Pública
 - **Hero Section**: Propuesta de valor clara y llamativa
@@ -244,12 +244,12 @@ consultorio-dental-app/
 
 ## Valor Agregado Implementado
 
-✅ **Búsqueda por paciente**: Filtro dinámico en tiempo real  
-✅ **Filtro por fecha**: Visualización de citas por día  
-✅ **Docker**: Entorno containerizado  
-✅ **Validaciones robustas**: Zod + validaciones de negocio  
-✅ **UI profesional**: shadcn/ui + TailwindCSS  
-✅ **Landing page completa**: 6 secciones informativas  
+**Búsqueda por paciente**: Filtro dinámico en tiempo real  
+**Filtro por fecha**: Visualización de citas por día  
+**Docker**: Entorno containerizado  
+**Validaciones robustas**: Zod + validaciones de negocio  
+**UI profesional**: shadcn/ui + TailwindCSS  
+**Landing page completa**: 6 secciones informativas  
 
 ## Scripts Disponibles
 
@@ -278,7 +278,7 @@ docker-compose restart
 
 ## Mejoras Futuras / Pendientes
 
-## 🧪 Tests
+## Tests
 
 El proyecto incluye tests unitarios y de integración usando Jest y React Testing Library.
 
@@ -297,12 +297,12 @@ npm run test:coverage
 
 ### Cobertura de Tests
 
-- ✅ Validación de esquemas (Zod)
-- ✅ Exportación de PDF
-- ✅ Componentes React (AppointmentModal)
-- 📊 **17 tests pasando exitosamente**
+- Validación de esquemas (Zod)
+- Exportación de PDF
+- Componentes React (AppointmentModal)
+- **17 tests pasando exitosamente**
 
-## 🚀 Deploy a Producción
+## Deploy a Producción
 
 Consulta la [guía completa de deploy](./DEPLOY.md) para instrucciones detalladas sobre cómo desplegar la aplicación en producción.
 
@@ -320,7 +320,7 @@ npm run build
 npm start
 ```
 
-## 📋 Roadmap y Mejoras Futuras
+## Roadmap y Mejoras Futuras
 
 - [x] Implementar tests unitarios e integración (Jest + Testing Library)
 - [x] Vista de calendario visual
@@ -332,14 +332,14 @@ npm start
 - [ ] Internacionalización (i18n)
 - [ ] Migraciones de TypeORM para producción
 
-## 👨‍💻 Contribución
+## Contribución
 
 Este proyecto fue desarrollado como prueba técnica. Para consultas o sugerencias, contactar a [santiagojl@parzik.com](mailto:santiagojl@parzik.com)
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto es de uso educativo y público.
 
 ---
 
-**Desarrollado con ❤️ usando Next.js, TypeScript y TypeORM**
+**Desarrollado con Amor usando Next.js, TypeScript y TypeORM**
