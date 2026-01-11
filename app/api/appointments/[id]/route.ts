@@ -9,14 +9,15 @@ import { AuditAction, AuditEntity } from "@/lib/db/entities/AuditLog";
 // GET - Obtener una cita específica
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await initializeDatabase();
     const appointmentRepository = AppDataSource.getRepository(Appointment);
     
     const appointment = await appointmentRepository.findOne({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!appointment) {
@@ -39,9 +40,10 @@ export async function GET(
 // PUT - Actualizar cita
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const validatedData = appointmentSchema.parse(body);
 
@@ -60,7 +62,7 @@ export async function PUT(
     const appointmentRepository = AppDataSource.getRepository(Appointment);
     
     const appointment = await appointmentRepository.findOne({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!appointment) {
@@ -84,7 +86,7 @@ export async function PUT(
 
       for (const existing of existingAppointments) {
         // No comparar consigo mismo
-        if (existing.id === params.id) continue;
+        if (existing.id === id) continue;
 
         const existingStart = new Date(`${existing.date}T${existing.time}`);
         const existingEnd = new Date(existingStart.getTime() + 60 * 60 * 1000);
@@ -150,14 +152,15 @@ export async function PUT(
 // DELETE - Eliminar cita
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await initializeDatabase();
     const appointmentRepository = AppDataSource.getRepository(Appointment);
     
     const appointment = await appointmentRepository.findOne({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!appointment) {
@@ -181,7 +184,7 @@ export async function DELETE(
     await createAuditLog({
       action: AuditAction.DELETE,
       entity: AuditEntity.APPOINTMENT,
-      entityId: params.id,
+      entityId: id,
       description: `Cita eliminada: ${deletedData.patientName} - ${deletedData.date} ${deletedData.time}`,
       metadata: deletedData,
       ipAddress: getIpFromRequest(request)
