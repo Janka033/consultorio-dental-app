@@ -2,7 +2,7 @@
 
 Aplicación web monolítica desarrollada en Next.js para la gestión completa de citas de un consultorio odontológico. Incluye landing page informativa y sistema privado de administración para el odontólogo.
 
-## Características
+## ✨ Características
 
 ### Landing Page Pública
 - **Hero Section**: Propuesta de valor clara y llamativa
@@ -13,20 +13,23 @@ Aplicación web monolítica desarrollada en Next.js para la gestión completa de
 - **Diseño Responsive**: Optimizado para todos los dispositivos
 
 ### Sistema de Gestión (Dashboard)
-- **Autenticación Segura**: Implementada con NextAuth.js
+- **Autenticación Segura**: Implementada con NextAuth.js v5
 - **CRUD Completo de Citas**: Crear, leer, actualizar y eliminar
 - **Búsqueda por Paciente**: Filtro dinámico en tiempo real
 - **Filtro por Fecha**: Visualización de citas específicas
+- **Vista de Calendario**: Calendario mensual interactivo con citas coloreadas por estado
+- **Exportación PDF**: Reporte profesional de citas con estadísticas
+- **Logs de Auditoría**: Registro completo de todas las acciones del sistema
 - **Validaciones de Negocio**:
   - No permite citas en el pasado
   - Previene solapamiento de horarios
   - Duración fija de 60 minutos por cita
 - **Estados de Citas**: Agendada, Cancelada, Finalizada
 
-## Tecnologías Utilizadas
+## 🛠 Tecnologías Utilizadas
 
 - **Frontend**: Next.js 16+ con App Router, TypeScript, TailwindCSS
-- **Backend**: API Routes de Next.js
+- **Backend**: API Routes de Next.js (arquitectura monolítica)
 - **Base de Datos**: PostgreSQL 15 con TypeORM
 - **Autenticación**: NextAuth.js v5
 - **Validaciones**: Zod
@@ -275,24 +278,68 @@ docker-compose restart
 
 ## Mejoras Futuras / Pendientes
 
-- [ ] Implementar tests unitarios e integración (Jest + Testing Library)
-- [ ] Vista de calendario visual
-- [ ] Exportar citas a PDF/Excel
+## 🧪 Tests
+
+El proyecto incluye tests unitarios y de integración usando Jest y React Testing Library.
+
+### Ejecutar Tests
+
+```bash
+# Ejecutar todos los tests
+npm test
+
+# Ejecutar tests en modo watch
+npm run test:watch
+
+# Generar reporte de cobertura
+npm run test:coverage
+```
+
+### Cobertura de Tests
+
+- ✅ Validación de esquemas (Zod)
+- ✅ Exportación de PDF
+- ✅ Componentes React (AppointmentModal)
+- 📊 **17 tests pasando exitosamente**
+
+## 🚀 Deploy a Producción
+
+Consulta la [guía completa de deploy](./DEPLOY.md) para instrucciones detalladas sobre cómo desplegar la aplicación en producción.
+
+### Resumen de Deploy
+
+1. **Frontend + API**: Vercel (recomendado)
+2. **Base de Datos**: Railway, Neon o Supabase
+3. **Variables de entorno**: Configurar según `.env.production.example`
+
+```bash
+# Build de producción
+npm run build
+
+# Iniciar en producción
+npm start
+```
+
+## 📋 Roadmap y Mejoras Futuras
+
+- [x] Implementar tests unitarios e integración (Jest + Testing Library)
+- [x] Vista de calendario visual
+- [x] Exportar citas a PDF
+- [x] Historial de cambios (logs de auditoría)
 - [ ] Notificaciones por email/SMS
-- [ ] Historial de cambios (logs de auditoría)
 - [ ] Dashboard de estadísticas
-- [ ] Deploy en Vercel + Railway/Supabase
 - [ ] Modo oscuro
 - [ ] Internacionalización (i18n)
+- [ ] Migraciones de TypeORM para producción
 
-## Contribución
+## 👨‍💻 Contribución
 
 Este proyecto fue desarrollado como prueba técnica. Para consultas o sugerencias, contactar a [santiagojl@parzik.com](mailto:santiagojl@parzik.com)
 
-## Licencia
+## 📄 Licencia
 
-Este proyecto es de uso educativo y publico.
+Este proyecto es de uso educativo y público.
 
 ---
 
-**Desarrollado con Amor usando Next.js, TypeScript y TypeORM**
+**Desarrollado con ❤️ usando Next.js, TypeScript y TypeORM**
