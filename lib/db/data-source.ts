@@ -7,8 +7,8 @@ import { AuditLog } from "./entities/AuditLog";
 export const AppDataSource = new DataSource({
   type:  "postgres",
   url: process.env.DATABASE_URL,
-  synchronize: true, // Solo en desarrollo - crea las tablas automáticamente
-  logging: false,
+  synchronize: process.env.NODE_ENV === "development", // Solo en desarrollo - crea las tablas automáticamente
+  logging: process.env.NODE_ENV === "development",
   entities: [User, Appointment, AuditLog],
   migrations: [],
   subscribers: [],
