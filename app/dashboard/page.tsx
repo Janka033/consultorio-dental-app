@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Calendar, LogOut, Search, List, CalendarDays, Download, FileText, Activity } from "lucide-react";
+import { Plus, Calendar, LogOut, Search, List, CalendarDays, FileText, Activity } from "lucide-react";
 import { AppointmentList } from "@/components/dashboard/AppointmentList";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { AppointmentModal } from "@/components/dashboard/AppointmentModal";
-import { exportToCSV, exportToPDF } from "@/lib/export";
+import { exportToPDF } from "@/lib/export";
 
 interface Appointment {
   id: string;
@@ -164,24 +164,14 @@ export default function DashboardPage() {
           </h2>
           <div className="flex flex-wrap gap-2">
             {appointments.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => exportToCSV(appointments)}
-                  title="Exportar a CSV"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  CSV
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => exportToPDF(appointments)}
-                  title="Exportar a PDF"
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  PDF
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                onClick={async () => await exportToPDF(appointments)}
+                title="Exportar a PDF"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </Button>
             )}
             <Button onClick={handleCreate}>
               <Plus className="mr-2 h-4 w-4" />
