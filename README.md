@@ -26,7 +26,7 @@ Aplicación web monolítica desarrollada en Next.js para la gestión completa de
   - Duración fija de 60 minutos por cita
 - **Estados de Citas**: Agendada, Cancelada, Finalizada
 
-## 🛠 Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 - **Frontend**: Next.js 16+ con App Router, TypeScript, TailwindCSS
 - **Backend**: API Routes de Next.js (arquitectura monolítica)
